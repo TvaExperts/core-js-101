@@ -20,9 +20,14 @@
  *    console.log(r.height);      // => 20
  *    console.log(r.getArea());   // => 200
  */
-function Rectangle(/* width, height */) {
-  throw new Error('Not implemented');
+function Rectangle(width, height) {
+  this.width = width;
+  this.height = height;
 }
+
+Rectangle.prototype.getArea = function getArea() {
+  return this.width * this.height;
+};
 
 
 /**
@@ -35,8 +40,8 @@ function Rectangle(/* width, height */) {
  *    [1,2,3]   =>  '[1,2,3]'
  *    { width: 10, height : 20 } => '{"height":10,"width":20}'
  */
-function getJSON(/* obj */) {
-  throw new Error('Not implemented');
+function getJSON(obj) {
+  return JSON.stringify(obj);
 }
 
 
@@ -51,8 +56,9 @@ function getJSON(/* obj */) {
  *    const r = fromJSON(Circle.prototype, '{"radius":10}');
  *
  */
-function fromJSON(/* proto, json */) {
-  throw new Error('Not implemented');
+function fromJSON(proto, json) {
+  const objFromJson = JSON.parse(json);
+  return Object.setPrototypeOf(objFromJson, proto);
 }
 
 
@@ -110,33 +116,131 @@ function fromJSON(/* proto, json */) {
  *  For more examples see unit tests.
  */
 
+const TYPES_OF_PARTS = {
+  ELEMENT: 0,
+  ID: 1,
+  CLASS: 2,
+  ATTR: 3,
+  PSEUDO_CLASS: 4,
+  PSEUDO_ELEMENT: 5,
+};
+
+class MyBuilder {
+  constructor(initStr, typeOfPart) {
+    this.line = '';
+    this.partsPresence = new Array(6).fill(0);
+    this.addNewPartInLine(initStr, typeOfPart);
+  }
+
+  isCorrectOrderForNewPart(newPartType) {
+    return !this.partsPresence.slice(newPartType + 1).filter((item) => item > 0).length;
+  }
+
+  element(str) {
+    if (this.partsPresence[TYPES_OF_PARTS.ELEMENT]) {
+      throw new Error('Element, id and pseudo-element should not occur more then one time inside the selector');
+    }
+    this.addNewPartInLine(str, TYPES_OF_PARTS.ELEMENT);
+    return this;
+  }
+
+  class(str) {
+    this.addNewPartInLine(str, TYPES_OF_PARTS.CLASS);
+    return this;
+  }
+
+  id(str) {
+    if (this.partsPresence[TYPES_OF_PARTS.ID]) {
+      throw new Error('Element, id and pseudo-element should not occur more then one time inside the selector');
+    }
+    this.addNewPartInLine(str, TYPES_OF_PARTS.ID);
+    return this;
+  }
+
+  attr(str) {
+    this.addNewPartInLine(str, TYPES_OF_PARTS.ATTR);
+    return this;
+  }
+
+  pseudoClass(str) {
+    this.addNewPartInLine(str, TYPES_OF_PARTS.PSEUDO_CLASS);
+    return this;
+  }
+
+  pseudoElement(str) {
+    if (this.partsPresence[TYPES_OF_PARTS.PSEUDO_ELEMENT]) {
+      throw new Error('Element, id and pseudo-element should not occur more then one time inside the selector');
+    }
+    this.addNewPartInLine(str, TYPES_OF_PARTS.PSEUDO_ELEMENT);
+    return this;
+  }
+
+  addNewPartInLine(str, typeOfPart) {
+    if (!this.isCorrectOrderForNewPart(typeOfPart)) {
+      throw new Error('Selector parts should be arranged in the following order: element, id, class, attribute, pseudo-class, pseudo-element');
+    }
+    this.partsPresence[typeOfPart] += 1;
+    switch (typeOfPart) {
+      case TYPES_OF_PARTS.ELEMENT:
+        this.line += str;
+        break;
+      case TYPES_OF_PARTS.ID:
+        this.line += `#${str}`;
+        break;
+      case TYPES_OF_PARTS.CLASS:
+        this.line += `.${str}`;
+        break;
+      case TYPES_OF_PARTS.PSEUDO_CLASS:
+        this.line += `:${str}`;
+        break;
+      case TYPES_OF_PARTS.PSEUDO_ELEMENT:
+        this.line += `::${str}`;
+        break;
+      case TYPES_OF_PARTS.ATTR:
+        this.line += `[${str}]`;
+        break;
+      default:
+    }
+  }
+
+  combineTail(combinator, lineStr) {
+    this.line += ` ${combinator} ${lineStr}`;
+    return this;
+  }
+
+  stringify() {
+    return this.line;
+  }
+}
+
 const cssSelectorBuilder = {
-  element(/* value */) {
-    throw new Error('Not implemented');
+
+  element(value) {
+    return new MyBuilder(value, TYPES_OF_PARTS.ELEMENT);
   },
 
-  id(/* value */) {
-    throw new Error('Not implemented');
+  id(value) {
+    return new MyBuilder(value, TYPES_OF_PARTS.ID);
   },
 
-  class(/* value */) {
-    throw new Error('Not implemented');
+  class(value) {
+    return new MyBuilder(value, TYPES_OF_PARTS.CLASS);
   },
 
-  attr(/* value */) {
-    throw new Error('Not implemented');
+  attr(value) {
+    return new MyBuilder(value, TYPES_OF_PARTS.ATTR);
   },
 
-  pseudoClass(/* value */) {
-    throw new Error('Not implemented');
+  pseudoClass(value) {
+    return new MyBuilder(value, TYPES_OF_PARTS.PSEUDO_CLASS);
   },
 
-  pseudoElement(/* value */) {
-    throw new Error('Not implemented');
+  pseudoElement(value) {
+    return new MyBuilder(value, TYPES_OF_PARTS.PSEUDO_ELEMENT);
   },
 
-  combine(/* selector1, combinator, selector2 */) {
-    throw new Error('Not implemented');
+  combine(selector1, combinator, selector2) {
+    return selector1.combineTail(combinator, selector2.stringify());
   },
 };
 

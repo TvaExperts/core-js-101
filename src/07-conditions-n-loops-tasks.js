@@ -351,10 +351,9 @@ function isBracketsBalanced(str) {
  *    365, 4  => '11231'
  *    365, 10 => '365'
  */
-function toNaryString(/* num, n */) {
-  throw new Error('Not implemented');
+function toNaryString(num, n) {
+  return num.toString(n);
 }
-
 
 /**
  * Returns the common directory path for specified array of full filenames.
@@ -368,8 +367,16 @@ function toNaryString(/* num, n */) {
  *   ['/web/assets/style.css', '/.bin/mocha',  '/read.me'] => '/'
  *   ['/web/favicon.ico', '/web-scripts/dump', '/verbalizer/logs'] => '/'
  */
-function getCommonDirectoryPath(/* pathes */) {
-  throw new Error('Not implemented');
+function getCommonDirectoryPath(pathes) {
+  const splitedPathes = pathes.map((item) => item.split('/'));
+  const commonArr = [];
+  for (let i = 0; i < splitedPathes[0].length; i += 1) {
+    const partOfPath = splitedPathes[0][i];
+    if (splitedPathes.every((path) => path[i] === partOfPath)) {
+      commonArr.push(`${partOfPath}/`);
+    }
+  }
+  return commonArr.join('');
 }
 
 
