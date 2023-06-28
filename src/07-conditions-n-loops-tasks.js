@@ -398,8 +398,19 @@ function getCommonDirectoryPath(pathes) {
  *                         [ 6 ]]
  *
  */
-function getMatrixProduct(/* m1, m2 */) {
-  throw new Error('Not implemented');
+function getMatrixProduct(m1, m2) {
+  const result = [];
+  for (let i = 0; i < m1.length; i += 1) {
+    result[i] = [];
+    for (let j = 0; j < m2[0].length; j += 1) {
+      let sum = 0;
+      for (let k = 0; k < m1[0].length; k += 1) {
+        sum += m1[i][k] * m2[k][j];
+      }
+      result[i][j] = sum;
+    }
+  }
+  return result;
 }
 
 
@@ -433,8 +444,37 @@ function getMatrixProduct(/* m1, m2 */) {
  *    [    ,   ,    ]]
  *
  */
-function evaluateTicTacToePosition(/* position */) {
-  throw new Error('Not implemented');
+function evaluateTicTacToePosition(position) {
+  function isWinLine(arr) {
+    if (!arr.length || arr.length !== position.length || !arr[0]) return false;
+    return arr.every((item) => item === arr[0]);
+  }
+
+  for (let i = 0; i < position.length; i += 1) {
+    if (isWinLine(position[i])) return position[i][0];
+  }
+
+  for (let i = 0; i < position.length; i += 1) {
+    const lineToCheckArray = [];
+    position.forEach((line) => {
+      lineToCheckArray.push(line[i]);
+    });
+    if (isWinLine(lineToCheckArray)) return lineToCheckArray[0];
+  }
+
+  let lineToCheckArray = [];
+  position.forEach((line, i) => {
+    lineToCheckArray.push(line[i]);
+  });
+  if (isWinLine(lineToCheckArray)) return lineToCheckArray[0];
+
+  lineToCheckArray = [];
+  position.forEach((line, i) => {
+    lineToCheckArray.push(line[position.length - i - 1]);
+  });
+  if (isWinLine(lineToCheckArray)) return lineToCheckArray[0];
+
+  return undefined;
 }
 
 
